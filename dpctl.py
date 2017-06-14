@@ -62,6 +62,15 @@ def update_task(task_id):
     task[0]['done'] = request.json.get('done', task[0]['done'])
     return jsonify({'task': task[0]})
 
+@test.route('/get-dps/test/v1.0/tasks/deleteoutput/<int:task_id>', methods = ['DELETE'])
+def delete_task(task_id):
+    task = filter(lambda t: t['id'] == task_id, tasks)
+    if len(task) == 0:
+        abort(404)
+
+    tasks.remove(task[0])
+    return jsonify( { 'result': True } )
+
 if __name__ == '__main__':
         test.run(debug=True) #run app on port 5000
 
