@@ -1,7 +1,28 @@
 #!flask/bin/python                                  
 from flask import Flask, jsonify, request, abort, make_response #import object from the Flask model
+from flask_httpauth import HTTPBasicAuth
+import subprocess
 
 test = Flask(__name__) #define app using Flask
+auth = HTTPBasicAuth()
+
+@auth.get_password
+def get_password(username):
+    if username == 'rose':
+        return 'python'
+    return None
+
+@auth.error_handler
+def unauthorized():
+    return make_response(jsonify( { 'error': 'Unauthorized access' } ), 403)
+
+@test.errorhandler(400)
+def not_found(error):
+    return make_response(jsonify( { 'error': 'Bad request' } ), 400)
+
+@test.errorhandler(404)
+def not_found(error):
+    return make_response(jsonify( { 'error': 'Not found' } ), 404)
 
 tasks = [
                 {
@@ -33,12 +54,17 @@ def create_task():
     if not request.json or not 'title' in request.json:
         abort(400)
 
+    title = str(request.json['title'])
+    concat = "sudo ovs-dpctl add-dp %s" % (title)
+    subprocess.call(concat, shell = True)
+
     task = {
         'id': tasks[-1]['id'] + 1,
         'title': request.json['title'],
         'description': request.json.get('description', ""),
         'done': False
     }
+
 
     tasks.append(task)
     return jsonify({'task': task}), 201
@@ -64,9 +90,10 @@ def update_task(task_id):
     task[0]['title'] = request.json.get('title', task[0]['title'])
     task[0]['description'] = request.json.get('description', task[0]['description'])
     task[0]['done'] = request.json.get('done', task[0]['done'])
-    return jsonify({'task': task[0]}
+    return jsonify({'task': task[0]})
 
 @test.route('/get-dps/test/v1.0/tasks/deleteoutput/<int:task_id>', methods = ['DELETE'])
+@auth.login_required
 def delete_task(task_id):
     task = filter(lambda t: t['id'] == task_id, tasks)
     if len(task) == 0:
@@ -78,6 +105,6 @@ def delete_task(task_id):
 
     tasks.remove(task[0])
     return jsonify( { 'result': True } )
+
 if __name__ == '__main__':
         test.run(debug=True) #run app on port 5000
-
