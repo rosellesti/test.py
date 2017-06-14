@@ -22,6 +22,12 @@ tasks = [
 def returnAll():
         return jsonify({'tasks': tasks})
 
+@test.route('/get-dps/test/v1.0/tasks/showoutput', methods=['GET'])
+def returnOne():
+        p = subprocess.Popen(["sudo", "ovs-dpctl", "dump-dps"], stdout=subprocess.PIPE)
+        output, err = p.communicate()
+        return output
+
 if __name__ == '__main__':
         test.run(debug=True) #run app on port 5000
 
