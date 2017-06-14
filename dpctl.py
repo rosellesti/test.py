@@ -72,9 +72,12 @@ def delete_task(task_id):
     if len(task) == 0:
         abort(404)
 
+    title = str(request.json['title'])
+    concat = "ovs-dpctl del-dp %s" % (title)
+    subprocess.call(concat, shell = True)
+
     tasks.remove(task[0])
     return jsonify( { 'result': True } )
-
 if __name__ == '__main__':
         test.run(debug=True) #run app on port 5000
 
