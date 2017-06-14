@@ -28,6 +28,18 @@ def returnOne():
         output, err = p.communicate()
         return output
 
+@test.route('/get-dps/test/v1.0/tasks/addinput', methods=['POST'])
+def create_task():
+    if not request.json or not 'title' in request.json:
+        abort(400)
+
+    task = {
+        'id': tasks[-1]['id'] + 1,
+        'title': request.json['title'],
+        'description': request.json.get('description', ""),
+        'done': False
+    }
+
 if __name__ == '__main__':
         test.run(debug=True) #run app on port 5000
 
